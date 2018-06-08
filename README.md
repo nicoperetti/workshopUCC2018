@@ -14,3 +14,4 @@ https://sites.google.com/view/deeplearningworkshop
 ### Sgarlatta Antonella: antsgar@gmail.com
 ### Pastore Pablo: pabloapast@gmail.com
 ### Peretti Nicolas: nicoperetti.16@gmail.com
+### Barotto Joaquin: joaquinbarotto@gmail.com
