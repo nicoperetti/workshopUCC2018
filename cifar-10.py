@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import cv2
+import argparse
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import seaborn as sns
@@ -67,14 +68,17 @@ def getModel(mode):
     if mode == "ad-hoc":
         # TODO
         # ...
+        pass
     
     elif mode == "InceptionV3":
         # TODO
         # ...
+        pass
 
     else:
         print("Not a valid architecture")
     return model
+
 
 def getOptimizer():
     # Define the optimizer
@@ -102,7 +106,7 @@ def resize_images(X_train, resize_image):
     return np.array(X)
 
 
-def train(reduce_dataset, resize_image=None):
+def train(reduce_dataset, model_mode, resize_image=None):
 
     X_train, Y_train, X_test, Y_test = load_data()
     
@@ -124,7 +128,7 @@ def train(reduce_dataset, resize_image=None):
     
     # mode must be one of the following options "ad-hoc" or "InceptionV3" 
     # model = getModel(mode="ad-hoc")
-    model = getModel(mode="InceptionV3")
+    model = getModel(mode=model_mode)
 
     print(model.summary())
 
@@ -158,12 +162,13 @@ def train(reduce_dataset, resize_image=None):
     print(history.history)
     plot_loss_acc(history)
 
-def test(resize_image, weights_path):
+def test(resize_image, weights_path, model_mode):
     X_train, Y_train, X_test, Y_true = load_data()
     if resize_image != None:
         X_test = resize_images(X_test, resize_image)
 
-    model = getModel(mode="InceptionV3")
+    #model = getModel(mode="InceptionV3")
+    model = getModel(mode=model_mode)
 
     model.load_weights(weights_path)
 
@@ -181,8 +186,17 @@ def test(resize_image, weights_path):
     print("F1: {}".format(f1_score(Y_true, Y_pred, average=None)))
 
 if __name__ == '__main__':
-    reduce_dataset = True
-    resize_image = 150
-    train(reduce_dataset, resize_image)
-    #weights_path = "weights/weights.02-0.55.hdf5"
-    #test(resize_image, weights_path)
+    parser = argparse.ArgumentParser(description='ex: python3 cifar-10.py -m train -n InceptionV3 -r 150')
+    parser.add_argument('-m', help='train or test', required=True, type=str)
+    parser.add_argument('-n', help='ad-hoc or InceptionV3', required=True, type=str)
+    parser.add_argument('-d', help='reduced dataset or not. Default=False', default=False, type=bool)
+    parser.add_argument('-r', help='resize image', default=None, type=int)
+    parser.add_argument('-w', help='weights path', type=str)
+    args = parser.parse_args()
+    
+    if args.m == "train":
+        train(args.d, args.n, args.r)
+    elif args.m == "test":
+        test(args.r, args.w, args.n)
+    else:
+        print("choose a valid mode. It should be 'train' or 'test'")
