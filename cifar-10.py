@@ -66,15 +66,46 @@ def split_dataset(X_train, Y_train, reduce_dataset):
 def getModel(mode):
 
     if mode == "ad-hoc":
-        # TODO
-        # ...
-        pass
+        input_shape=(32,32,3)
+
+        model = Sequential()
+
+        model.add(Conv2D(filters = 32, kernel_size = (5,5),padding = 'Same', 
+                         activation ='relu', input_shape = input_shape))
+        model.add(Conv2D(filters = 32, kernel_size = (5,5),padding = 'Same', 
+                         activation ='relu'))
+        model.add(MaxPool2D(pool_size=(2,2)))
+        model.add(Dropout(0.25))
+
+
+        model.add(Conv2D(filters = 64, kernel_size = (3,3),padding = 'Same', 
+                         activation ='relu'))
+        model.add(Conv2D(filters = 64, kernel_size = (3,3),padding = 'Same', 
+                         activation ='relu'))
+        model.add(MaxPool2D(pool_size=(2,2), strides=(2,2)))
+        model.add(Dropout(0.25))
+
+
+        model.add(Flatten())
+        model.add(Dense(256, activation = "relu"))
+        model.add(Dropout(0.5))
+        model.add(Dense(10, activation = "softmax"))
     
     elif mode == "InceptionV3":
-        # TODO
-        # ...
-        pass
+        input_shape = (150,150,3)
 
+        base_model = InceptionV3(weights='imagenet', input_shape=input_shape, include_top=False)
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        # let's add a fully-connected layer
+        x = Dense(1024, activation='relu')(x)
+        # and a logistic layer -- let's say we have 10 classes
+        predictions = Dense(10, activation='softmax')(x)
+        model = Model(inputs=base_model.input, outputs=predictions)
+
+        ## freeze all convolutional InceptionV3 layers 
+        for layer in base_model.layers:
+            layer.trainable = False
     else:
         print("Not a valid architecture")
     return model
@@ -186,7 +217,7 @@ def test(resize_image, weights_path, model_mode):
     print("F1: {}".format(f1_score(Y_true, Y_pred, average=None)))
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='ex: python3 cifar-10.py -m train -n InceptionV3 -r 150')
+    parser = argparse.ArgumentParser(description='ex: python3 cifar-10.py -m train -n InceptionV3 -r 150; python3 cifar-10.py -m train -n ad-hoc')
     parser.add_argument('-m', help='train or test', required=True, type=str)
     parser.add_argument('-n', help='ad-hoc or InceptionV3', required=True, type=str)
     parser.add_argument('-d', help='reduced dataset or not. Default=False', default=False, type=bool)
